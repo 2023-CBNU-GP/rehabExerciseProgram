@@ -3,21 +3,19 @@ import cv2
 
 class PoseDetector() :
 
-    def __init__(self, mode=False,complexity=1,
-                 smooth=True, enableSeg=False,smoothSeg=True,detectionCon=0.5, trackCon=0.5):
+    def __init__(self, mode=False,upper=False,
+                 smooth=True,detectionCon=0.5, trackCon=0.5):
 
         self.mode = mode
         self.smooth = smooth
+        self.upper=upper
         self.detectionCon = detectionCon
         self.trackCon = trackCon
-        self.complexity=complexity
-        self.enableSeg=enableSeg
-        self.smoothSeg=smoothSeg
 
         self.mpDraw = mp.solutions.drawing_utils
         self.mpPose = mp.solutions.pose
-        self.pose = self.mpPose.Pose(self.mode, self.complexity,self.smooth, self.enableSeg,
-                                     self.smoothSeg,self.detectionCon, self.trackCon)
+        self.pose = self.mpPose.Pose(self.mode, self.upper,
+                                     self.smooth,self.detectionCon, self.trackCon)
 
     def findPose(self,img,draw=True):
         imgRGB = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)

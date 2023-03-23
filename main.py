@@ -15,15 +15,18 @@ while webcam.isOpened():
     detector = pd.PoseDetector()
     status, frame = webcam.read()
 
-    if status :
-        BackH,BackW,_=frame.shape
-        added_img=overlay.overlay_transparent(frame,personFrame,int(((BackW-1)/2)-((w-1)/2)),int(((BackH-1)/2)-((h-1)/2)))
-        img = detector.findPose(frame)
-        lmList = detector.findPosition(frame)
+    if not status :
+        webcam.waitKey()
+        break
 
-        cv2.imshow("frame",added_img)
+    BackH,BackW,_=frame.shape
+    added_img=overlay.overlay_transparent(frame,personFrame,int(((BackW-1)/2)-((w-1)/2)),int(((BackH-1)/2)-((h-1)/2)))
+    img = detector.findPose(frame)
+    lmList = detector.findPosition(frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q') :
+    cv2.imshow("frame",added_img)
+
+    if cv2.waitKey(10) & 0xFF == ord('q') :
         break
 
 webcam.release()
