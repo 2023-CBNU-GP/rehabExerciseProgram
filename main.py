@@ -1,52 +1,19 @@
 import cv2
 import PoseDetector as pd
-import ImageOverlayer as io
-import math
+import AngleManager as af
 
-def GetJointAngle(CenterPos,jointPos1, jointPos2) :
-
-    theta1=math.atan2((jointPos1[2]-CenterPos[2]), (jointPos1[1]-CenterPos[1]))
-    theta2=math.atan2((jointPos2[2]-CenterPos[2]), (jointPos2[1]-CenterPos[1]))
-
-    degree= abs(theta2-theta1)*180/math.pi
-
-    return round(degree,3)
-
-def MatchTwoAngle(joints1,leftSum): #두 영상으로 비교 예정...
-    leftUpperBodyAngle={"LelbowAngle":[14,16,12],"LarmpitAngle":[12,14,24],"LbodyAngle":[12,11,24]}
-    rightUpperBodyAngle={"RelbowAngle":[13,11,15],"RarmpitAngle":[11,13,23],"RbodyAngle":[11,12,23]}
-
-    i=0
-    for center,left,right in leftUpperBodyAngle.values():
-        leftSum[i]+=GetJointAngle(joints1[center],joints1[left],joints1[right])
-        if i==0:
-            print(str(GetJointAngle(joints1[center],joints1[left],joints1[right])))
-        i+=1
-
-    return leftSum
-
-
-def ComparePose(TeacherAngle,PatientAngle) :
-
-    compareAngle=abs(TeacherAngle-PatientAngle)
-
-    if compareAngle <= 5 :
-        return 100
-    elif compareAngle <= 10 :
-        return 90
-    elif compareAngle <= 20 :
-        return 80
-    elif compareAngle <= 30 :
-        return 70
-    # 60이하부터는 아예 fail 처리 예정
-    return 60
-
-cap = cv2.VideoCapture("Shoulder_1.mp4")
+file_name="tmp04.mp4"
+cap = cv2.VideoCapture(file_name)
 pTime = 0
 detector = pd.PoseDetector()
 
 frameCount=cap.get(cv2.CAP_PROP_FRAME_COUNT)
-TeacherAngleSum=[0,0,0]
+patientAngle= {"LelbowAngle":0,"LshoulderAngle":0,"RelbowAngle":0,"RshoulderAngle":0
+            ,"Lhip":0,"Rhip":0,"Lknee":0,"Rknee":0}
+
+AngleManager=af.AngleManager()
+
+teacherAngle=AngleManager.GetAvgAngle("Shoulder_1.mp4")
 while True:
     success, img = cap.read()
 
@@ -54,19 +21,21 @@ while True:
     if  Curframe>= frameCount/3 and Curframe<=frameCount-frameCount/3: #현재 프레임 수를 확인 후, 지정된 프레임 이상일 시 동영상에서 스켈렙톤 뽑아내기
             img = detector.findPose(img)
             lmList = detector.findPosition(img)
-            MatchTwoAngle(lmList,TeacherAngleSum)
+            AngleManager.GetAverageAngle(lmList,patientAngle)
 
     if img is None:
         break
 
-    cv2.imshow("image", img)
     cv2.waitKey(1)
 
-for i in range(0,len(TeacherAngleSum)):
-    TeacherAngleSum[i]/=(frameCount/3)
+for i,value in patientAngle.items():
+    patientAngle[i]=round(value/(frameCount/3),2)
 
-print(TeacherAngleSum)
+AngleManager.ComparePose(teacherAngle,patientAngle)
 
+#위 다 일치하나, 선생님용은 아래 함수를 적어야함.
+#AngleManager.TransferJsonFile(file_name,TeacherAngleAvg)
 
 cap.release()
 cv2.destroyAllWindows()
+

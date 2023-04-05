@@ -39,6 +39,5 @@ class PoseDetector() :
                 if draw :
                     cv2.circle(img,(cx,cy),5,(255,0,0),cv2.FILLED) #그려지는 원형이 작아짐.
 
-                #print(id,landmark) #landmark에 대한 x,y,z좌표가 출력된다. 이를 이용해서 각도를 구하면 될듯.
-
         return lmList
+
