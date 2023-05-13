@@ -1,5 +1,6 @@
 import math
 import json
+import numpy as np
 
 class AngleManager():
 
@@ -23,23 +24,63 @@ class AngleManager():
             AngleSum[key]+= self.GetJointAngle(joints1[center],joints1[left],joints1[right])
             i+=1
 
-        return AngleSum
+    def GetAverageJoint(self,lmList,poselist):
+        # 각도 구하는 공식 다시 생각하기...
+
+        for i in range(len(lmList)):
+
+            id,x,y=lmList[i]
+
+            if id in poselist :
+                xx,yy=poselist[id]
+                poselist[id]=[xx+x,yy+y]
+
+
+
+    #cos 유사도는 각 벡터 사이의 유사도를 확인함...
+    #teacher의 x,y좌표와 환자의 x,y좌표에 대해 우사도를 해야하나..?
+    def GetSimiarityCos(self,TeacherJoint,PatientJoint):
+
+        for i in range(len(TeacherJoint)) :
+            dot_product=np.dot(TeacherJoint[i],PatientJoint[i])
+
+            l2_norm =(np.sqrt(sum(np.square(TeacherJoint[i])))*np.sqrt(sum(np.square(PatientJoint[i]))))
+            similarity = dot_product/l2_norm
+
+            print(similarity)
+
+    def GetAngle(self,joints,AngleList):
+
+        Angle={"LelbowAngle":[14,16,12],"LshoulderAngle":[12,14,24],"RelbowAngle":[13,11,15],"RshoulderAngle":[11,13,23]
+            ,"Lhip":[24,23,26],"Rhip":[23,24,25],"Lknee":[25,23,27],"Rknee":[26,24,28]}
+
+        i=0
+        for key,value in Angle.items():
+            center,left,right=value
+            AngleList[key]= self.GetJointAngle(joints[center],joints[left],joints[right])
+            i+=1
+
+        return AngleList
 
     def ComparePose(self,TeacherAngle,PatientAngle) :
-        print(TeacherAngle)
-        print(PatientAngle)
-        # compareAngle=abs(TeacherAngle-PatientAngle)
-        #
-        # if compareAngle <= 15 :
-        #     return 100
-        # elif compareAngle <= 35 :
-        #     return 90
-        # elif compareAngle <= 55 :
-        #     return 80
-        # elif compareAngle <= 65 :
-        #     return 70
-        # # 60이하부터는 아예 fail 처리 예정
-        # return 60
+        scoreAngle={}
+
+        for key,value in TeacherAngle.items():
+            angle=abs(float(value)-PatientAngle[key])
+            if angle <= 10 :
+                scoreAngle[key]=100
+            elif angle <= 20 :
+                scoreAngle[key]=90
+            elif angle <= 30 :
+                scoreAngle[key]=80
+            elif angle <= 40 :
+                scoreAngle[key]=70
+            else:
+                scoreAngle[key]=60
+
+        print(scoreAngle)
+        return scoreAngle
+
 
     def TransferJsonFile(self,fileName,avgAngleList=None):
         #file 경로 지정
@@ -67,10 +108,10 @@ class AngleManager():
     def StoreAvgAngle(self,fileName,avgAngleList):
         dic={}
         dic[fileName]={
-                    'LelbowAngle':str(avgAngleList['LelbowAngle']),'LshoulderAngle':str(avgAngleList['LshoulderAngle']),
-                                     'RelbowAngle':str(avgAngleList['RelbowAngle']),'RshoulderAngle':str(avgAngleList['RshoulderAngle']),
-                                     'Lhip':str(avgAngleList['Lhip']),'Rhip':str(avgAngleList['Rhip']),
-                                     'Lknee':str(avgAngleList['Lknee']),'Rknee':str(avgAngleList['Rknee'])
+                    'LelbowAngle':avgAngleList['LelbowAngle'],'LshoulderAngle':avgAngleList['LshoulderAngle'],
+                    'RelbowAngle':avgAngleList['RelbowAngle'],'RshoulderAngle':avgAngleList['RshoulderAngle'],
+                    'Lhip':avgAngleList['Lhip'],'Rhip':avgAngleList['Rhip'],
+                    'Lknee':avgAngleList['Lknee'],'Rknee':avgAngleList['Rknee']
         }
 
         return dic
