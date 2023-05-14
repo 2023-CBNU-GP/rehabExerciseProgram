@@ -13,7 +13,7 @@ patientAngle= {"LelbowAngle":0,"LshoulderAngle":0,"RelbowAngle":0,"RshoulderAngl
 
 AngleManager=af.AngleManager()
 
-teacherAngle=AngleManager.GetAvgAngle("Shoulder_1.mp4")
+#teacherAngle=AngleManager.GetAvgAngle("Shoulder_1.mp4")
 poselist={11:[0,0],12:[0,0],13:[0,0],14:[0,0],15:[0,0],16:[0,0],23:[0,0],24:[0,0],25:[0,0],26:[0,0],27:[0,0],28:[0,0]}
 
 while True:
@@ -26,19 +26,19 @@ while True:
             lmList = detector.findPosition(img)
             AngleManager.GetAngle(lmList,patientAngle)
             AngleManager.GetAverageJoint(lmList,poselist)
-            print(poselist)
+
             #AngleManager.GetSimiarityCos(lmList,lmList);
 
             #AngleManager.ComparePose(teacherAngle,patientAngle)
             #의사용, 환자의 경우 실시간으로 비교가 일어나야하므로 필요없음.
-            #AngleManager.GetAverageAngle(lmList,patientAngle)
-            #for i,value in patientAngle.items():
-            #patientAngle[i]=round(value/(frameCount/3),2)
+            AngleManager.GetAverageAngle(lmList,patientAngle)
+
             cv2.imshow('img',img)
 
     if img is None:
         break
-
+for i,value in patientAngle.items():
+    patientAngle[i]=round(value/(frameCount/3),2)
 for id,value in poselist.items():
     x=value[0]
     y=value[1]
@@ -46,7 +46,7 @@ for id,value in poselist.items():
     poselist[id]=[round(x/(frameCount/3),2),round(y/(frameCount/3),2)]
 
 print(poselist)
-
+AngleManager.TransferJsonFile(file_name,poselist,patientAngle)
 cv2.waitKey(1)
 
 
