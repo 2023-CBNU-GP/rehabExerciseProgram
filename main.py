@@ -50,6 +50,14 @@ cap = cv2.VideoCapture(file_name) #환자 동영상을 읽는다.
 file_name1="test.mp4" #의사용
 cap1 = cv2.VideoCapture(file_name1) #의사의 데이터를 읽는다.
 
+##저장용
+w = round(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+h = round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = cap.get(cv2.CAP_PROP_FPS)
+#mp4확장자 선택을 위함
+fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+#앞 string 파일 이름
+out=cv2.VideoWriter("patint1.mp4",fourcc, fps, (w, h))
 while (cap.isOpened()):
     success, target_image = cap.read() #환자 동영상을 읽어온다.
     _,skeleton_image=cap1.read() #의사 동영상을 읽어온다.
@@ -64,18 +72,18 @@ while (cap.isOpened()):
     lmList2,patient = detector1.findPosition(target_image) #환자
 
     adjustStd(patient, doctor)
-    target_image=detector1.drawPose(target_image,patient,255) #환자 색
     target_image=detector1.drawPose(target_image,doctor,100)    #의사 색
 
     if skeleton_image is None:
         break
-
+    out.write(target_image) #data저장용
     cv2.imshow('img2',target_image)
     # 'q' 키를 누르면 종료
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
+out.release()
 cv2.destroyAllWindows()
 #송수영 이미지 프레임 2
 #영상 두개 가져와서 길이 일치시키기
